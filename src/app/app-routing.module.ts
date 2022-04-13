@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MinesweeperComponent } from '@component/minesweeper/minesweeper.component';
 import { StartPageComponent } from '@component/start-page/start-page.component';
+import { MinesweeperComponent } from '@component/minesweeper/minesweeper.component';
 import { Guard } from '@guard';
 
 const routes: Routes = [

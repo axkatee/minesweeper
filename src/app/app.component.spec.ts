@@ -23,13 +23,13 @@ describe('AppComponent', () => {
   it(`should have as title 'minesweeper'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('minesweeper');
+    expect(app.title).toEqual('game-config');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('minesweeper app is running!');
+    expect(compiled.querySelector('.content span')?.textContent).toContain('game-config app is running!');
   });
 });

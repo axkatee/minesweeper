@@ -25,7 +25,8 @@
       "@config": ["src/app/config.ts"],
       "@guard": ["src/app/guard.ts"],
       "@service/*": ["src/app/services/*"],
-      "@component/*": ["src/app/components/*"]
+      "@component/*": ["src/app/components/*"],
+      "@environment": ["src/environments/environment"]
     }
   },
   "angularCompilerOptions": {

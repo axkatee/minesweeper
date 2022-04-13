@@ -4,13 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { StartPageComponent } from '@component/start-page/start-page.component';
+import { GameConfigComponent } from '@component/game-config/game-config.component';
 import { MinesweeperComponent } from '@component/minesweeper/minesweeper.component';
+import { PlayFieldComponent } from '@component/play-field/play-field.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     StartPageComponent,
-    MinesweeperComponent
+    GameConfigComponent,
+    MinesweeperComponent,
+    PlayFieldComponent
   ],
   imports: [
     BrowserModule,
