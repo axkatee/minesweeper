@@ -1,1 +1,12 @@
-<p>start-page works!</p>
+<div class="main-block">
+  <h1 class="title">
+    Minesweeper
+  </h1>
+  <input [(ngModel)]="name"
+         type="text"
+         placeholder="your name:"
+         [maxLength]="maxInputLength">
+  <button (click)="navigateToGame()">
+    start
+  </button>
+</div>

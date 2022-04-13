@@ -13,4 +13,12 @@ export class AuthService {
       return resolve(!!name);
     });
   }
+
+  public setNameToLocalStorage(name: string): void {
+    localStorage.setItem('name', JSON.stringify(name));
+  }
+
+  public removeNameFromLocalStorage(): void {
+    localStorage.removeItem('name');
+  }
 }
