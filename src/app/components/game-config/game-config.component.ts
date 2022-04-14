@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { SocketService } from '@service/socket-service/socket.service';
-import { defaultLevel, IGameConfig, Level } from '@config';
+import { GameService } from '@service/game-service/game.service';
+import { Level } from '@config';
 
 @Component({
   selector: 'app-game-config',
@@ -8,18 +9,19 @@ import { defaultLevel, IGameConfig, Level } from '@config';
   styleUrls: ['./game-config.component.less']
 })
 export class GameConfigComponent {
-  @Output() gameState = new EventEmitter();
-
-  public level: Level = defaultLevel;
+  public level: Level;
 
   constructor(
+    private readonly gameService: GameService,
     private readonly socketService: SocketService
-  ) { }
+  ) {
+    this.level = this.gameService.level;
+  }
 
   public startGame(): void {
-    const gameConfig: IGameConfig = { isStarted: true, level: this.level };
+    this.gameService.isGameStarted.next(true);
+    this.gameService.level = this.level;
     this.socketService.createNewGame(this.level);
-    this.gameState.emit(gameConfig);
   }
 
 }

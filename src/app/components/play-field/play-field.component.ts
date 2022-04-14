@@ -1,7 +1,7 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { SocketService } from '@service/socket-service/socket.service';
-import { IGameConfig } from '@config';
+import { GameService } from '@service/game-service/game.service';
 
 @Component({
   selector: 'app-play-field',
@@ -9,16 +9,17 @@ import { IGameConfig } from '@config';
   styleUrls: ['./play-field.component.less']
 })
 export class PlayFieldComponent implements OnInit, OnDestroy {
-  @Output() gameState = new EventEmitter();
-
   public map$ = new BehaviorSubject<string>('');
   public countOfRows = [];
   public countOfColumns = [];
   public valuesMap: string[];
+  public flagsMap: boolean[];
 
+  private isMapInit = false;
   private socketMessageSub: Subscription;
 
   constructor(
+    private readonly gameService: GameService,
     private readonly socketService: SocketService
   ) { }
 
@@ -39,7 +40,10 @@ export class PlayFieldComponent implements OnInit, OnDestroy {
           this.exitGame();
         } else {
           this.map$.next(res);
-          this.getRowsAndColumns();
+          if (!this.isMapInit) {
+            this.getRowsAndColumns();
+            this.isMapInit = true;
+          }
           this.setArrayOfCellValues();
         }
       } else if (res?.includes('open: You lose')) {
@@ -54,9 +58,15 @@ export class PlayFieldComponent implements OnInit, OnDestroy {
     this.socketService.requestMap();
   }
 
+  public putFlag(event: Event, x: number, y: number): void {
+    event.preventDefault();
+    const flagIndex = (y * this.countOfRows.length) + x;
+    this.flagsMap[flagIndex] = !this.flagsMap[flagIndex];
+    this.setArrayOfCellValues();
+  }
+
   public exitGame(): void {
-    const gameConfig: IGameConfig = { isStarted: false, level: 1 };
-    this.gameState.emit(gameConfig);
+    this.gameService.isGameStarted.next(false);
   }
 
   private getRowsAndColumns(): void {
@@ -68,8 +78,8 @@ export class PlayFieldComponent implements OnInit, OnDestroy {
       cell === '\n' ? y += 1 : x += 1;
     });
 
+    this.flagsMap = new Array(x).fill(false);
     x = x / y;
-
     this.countOfRows = Array(x);
     this.countOfColumns = Array(y);
   }
@@ -84,10 +94,12 @@ export class PlayFieldComponent implements OnInit, OnDestroy {
       for(let j = 0; j < this.countOfColumns.length; j++) {
         const index = (j * this.countOfRows.length) + i;
         finalArr[i][j] = map[index];
+        if (map[index] === 'ㅤ' && this.flagsMap[index]) {
+          finalArr[i][j] = 'f';
+        }
       }
     }
     this.valuesMap = finalArr;
-    console.log(this.valuesMap)
   }
 
   private getConvertedMap(): string[] {
