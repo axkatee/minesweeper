@@ -1,41 +1,34 @@
 import { Injectable } from '@angular/core';
-import { environment } from "@environment";
-import { levels } from "@config";
+import { Subject } from 'rxjs';
+import { environment } from '@environment';
+import { Level } from '@config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SocketService {
+  public socketMessage$ = new Subject();
   private socket = new WebSocket(environment.socketUrl);
 
   constructor() {
     this.socket.onopen = () => {
-      this.socket.send('help')
-      this.socket.send('new 4')
-      this.socket.send('map')
+      this.socket.send('help');
+    }
+
+    this.socket.onmessage = (event) => {
+      this.socketMessage$.next(event.data);
     }
   }
 
-  public createNewGame(level: levels): void {
+  public createNewGame(level: Level): void {
     this.socket.send(`new ${level}`);
-    this.socket.onmessage = (event) => {
-      console.log(event.data)
-    }
   }
 
   public openXYCell(x: number, y: number): void {
     this.socket.send(`open ${x} ${y}`);
-    this.socket.onmessage = (event) => {
-      console.log(event.data)
-    }
   }
 
-  public getMap(): any {
-    let map: any;
+  public requestMap(): void {
     this.socket.send('map');
-    this.socket.onmessage = (event) => {
-      map = event.data;
-    }
-    return map;
   }
 }

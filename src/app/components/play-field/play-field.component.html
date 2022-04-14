@@ -1,1 +1,10 @@
-<p>play-field works!</p>
+<button (click)="exitGame()">Exit game</button>
+<div class="table">
+  <div class="column" *ngFor="let i of countOfColumns; index as y">
+    <div class="row" *ngFor="let i of countOfRows; index as x" (click)="rerenderMap(x, y)">
+      <div *ngIf="valuesMap[x][y] === 'ㅤ'" class="empty-cell">{{valuesMap[x][y]}}</div>
+      <div *ngIf="valuesMap[x][y] === '0'" class="null-cell"> </div>
+      <div *ngIf="valuesMap[x][y] !== 'ㅤ' && valuesMap[x][y] !== '0'" class="opened-cell">{{valuesMap[x][y]}}</div>
+    </div>
+  </div>
+</div>
