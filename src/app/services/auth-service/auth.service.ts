@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { LocalStorageKey } from '@config';
 
 @Injectable({
   providedIn: 'root'
@@ -7,18 +8,16 @@ export class AuthService {
 
   constructor() { }
 
-  public isLoggedIn(): Promise<boolean> {
+  get isLoggedIn(): boolean {
     const name = localStorage.getItem('name');
-    return new Promise(resolve => {
-      return resolve(!!name);
-    });
+    return !!name;
   }
 
   public setNameToLocalStorage(name: string): void {
-    localStorage.setItem('name', JSON.stringify(name));
+    localStorage.setItem(LocalStorageKey.name, JSON.stringify(name));
   }
 
-  public removeNameFromLocalStorage(): void {
-    localStorage.removeItem('name');
+  public clearLocalStorage(): void {
+    localStorage.clear();
   }
 }

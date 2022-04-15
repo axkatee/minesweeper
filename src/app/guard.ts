@@ -6,6 +6,7 @@ import {
   Router
 } from '@angular/router';
 import { AuthService } from '@service/auth-service/auth.service';
+import { Path } from '@config';
 
 @Injectable({
   providedIn: 'root'
@@ -19,14 +20,12 @@ export class Guard implements CanActivate {
   ) { }
 
 
-  public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
-    return this.authService.isLoggedIn().then(isLoggedIn => {
-      if (isLoggedIn) {
-        return true;
-      } else {
-        this.router.navigate(['start']);
-        return false;
-      }
-    });
+  public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    if (this.authService.isLoggedIn) {
+      return true;
+    } else {
+      this.router.navigate([Path.start]);
+      return false;
+    }
   }
 }

@@ -1,7 +1,20 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import {
+  Component,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+import {
+  BehaviorSubject,
+  Subject,
+  takeUntil
+} from 'rxjs';
 import { SocketService } from '@service/socket-service/socket.service';
 import { GameService } from '@service/game-service/game.service';
+import {
+  Cell,
+  SocketMessage,
+  startTime
+} from '@config';
 
 @Component({
   selector: 'app-play-field',
@@ -9,14 +22,15 @@ import { GameService } from '@service/game-service/game.service';
   styleUrls: ['./play-field.component.less']
 })
 export class PlayFieldComponent implements OnInit, OnDestroy {
-  public map$ = new BehaviorSubject<string>('');
+  public map$ = new BehaviorSubject<string>(null);
   public countOfRows = [];
   public countOfColumns = [];
-  public valuesMap: string[];
+  public valuesMap: any[];
   public flagsMap: boolean[];
+  public currentTime = startTime;
 
   private isMapInit = false;
-  private socketMessageSub: Subscription;
+  private destroy$ = new Subject<boolean>();
 
   constructor(
     private readonly gameService: GameService,
@@ -26,87 +40,82 @@ export class PlayFieldComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.socketService.requestMap();
     this.handleSocketResponse();
+    this.gameService.startTimer();
+    this.handleTimer();
   }
 
   ngOnDestroy(): void {
-    this.socketMessageSub?.unsubscribe();
+    this.destroy$.next(true);
   }
 
   public handleSocketResponse(): void {
-    this.socketMessageSub = this.socketService.socketMessage$.subscribe((res: string) => {
-      if (res?.includes('map:')) {
-        if (!res?.includes('□')) {
-          alert('you win!');
-          this.exitGame();
-        } else {
-          this.map$.next(res);
-          if (!this.isMapInit) {
-            this.getRowsAndColumns();
-            this.isMapInit = true;
-          }
-          this.setArrayOfCellValues();
-        }
-      } else if (res?.includes('open: You lose')) {
-        alert('you lose');
-        this.exitGame();
-      }
+    this.socketService.socketMessage$
+      .pipe(
+        takeUntil(this.destroy$))
+      .subscribe((res: string) => {
+        this.handleResponse(res);
     });
   }
 
-  public rerenderMap(x: number, y: number): void {
-    this.socketService.openXYCell(x, y);
-    this.socketService.requestMap();
+  public openCell(x: number, y: number): void {
+    if (this.valuesMap[x][y] === Cell.unopened) {
+      this.socketService.openXYCell(x, y);
+      this.socketService.requestMap();
+    }
   }
 
   public putFlag(event: Event, x: number, y: number): void {
     event.preventDefault();
     const flagIndex = (y * this.countOfRows.length) + x;
     this.flagsMap[flagIndex] = !this.flagsMap[flagIndex];
-    this.setArrayOfCellValues();
+    this.valuesMap = this.gameService.setArrayOfCellValues(
+      this.countOfRows.length,
+      this.countOfColumns.length,
+      this.flagsMap,
+      this.map$.getValue()
+    );
   }
 
   public exitGame(): void {
-    this.gameService.isGameStarted.next(false);
+    this.gameService.exitGame();
   }
 
-  private getRowsAndColumns(): void {
-    const convertedMap = this.getConvertedMap();
-    let x = 0;
-    let y = 0;
-
-    convertedMap.forEach(cell => {
-      cell === '\n' ? y += 1 : x += 1;
-    });
-
-    this.flagsMap = new Array(x).fill(false);
-    x = x / y;
-    this.countOfRows = Array(x);
-    this.countOfColumns = Array(y);
+  private handleTimer(): void {
+    this.gameService.timer$
+      .pipe(
+        takeUntil(this.destroy$)
+      )
+      .subscribe((time) => {
+        this.currentTime = time;
+      });
   }
 
-  private setArrayOfCellValues(): void {
-    let map = this.getConvertedMap();
-    map = map.filter(cell => cell !== '\n');
-
-    let finalArr = [];
-    for(let i = 0; i < this.countOfRows.length; i++) {
-      finalArr[i] = [];
-      for(let j = 0; j < this.countOfColumns.length; j++) {
-        const index = (j * this.countOfRows.length) + i;
-        finalArr[i][j] = map[index];
-        if (map[index] === 'ㅤ' && this.flagsMap[index]) {
-          finalArr[i][j] = 'f';
-        }
+  private handleResponse(res: string): void {
+    if (res?.includes(SocketMessage.map)) {
+      if (!res?.includes(Cell.square)) {
+        this.gameService.onWinGame(this.currentTime);
+      } else {
+        this.drawMap(res);
       }
+    } else if (res?.includes(SocketMessage.loseGame)) {
+      this.gameService.onLoseGame();
     }
-    this.valuesMap = finalArr;
   }
 
-  private getConvertedMap(): string[] {
-    let convertedMap: string = this.map$.getValue();
-    convertedMap = convertedMap.replace('map:\n', '');
-    convertedMap = convertedMap.replace(/□/gi, 'ㅤ');
-    return Array.from(convertedMap);
+  private drawMap(res: string): void {
+    this.map$.next(res);
+    if (!this.isMapInit) {
+      const rowsColumnsAndFlagsMapObj = this.gameService.getRowsAndColumns(this.map$.getValue());
+      this.countOfRows = rowsColumnsAndFlagsMapObj.countOfRows;
+      this.countOfColumns = rowsColumnsAndFlagsMapObj.countOfColumns;
+      this.flagsMap = rowsColumnsAndFlagsMapObj.flagsMap;
+      this.isMapInit = true;
+    }
+    this.valuesMap = this.gameService.setArrayOfCellValues(
+      this.countOfRows.length,
+      this.countOfColumns.length,
+      this.flagsMap,
+      this.map$.getValue()
+    );
   }
-
 }

@@ -26,6 +26,7 @@
       "@guard": ["src/app/guard.ts"],
       "@service/*": ["src/app/services/*"],
       "@component/*": ["src/app/components/*"],
+      "@directive/*": ["src/app/directives/*"],
       "@environment": ["src/environments/environment"]
     }
   },
