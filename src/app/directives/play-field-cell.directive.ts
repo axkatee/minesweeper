@@ -1,5 +1,20 @@
-import { Directive, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges } from '@angular/core';
-import { AcceptedCells, Cell, CellClass, CellClassType, OpenedCell, openedCellsTypes } from "@config";
+import { 
+  Directive, 
+  ElementRef, 
+  Input, 
+  OnChanges,
+  OnInit, 
+  Renderer2, 
+  SimpleChanges 
+} from '@angular/core';
+import { 
+  AcceptedCells,
+  Cell, 
+  CellClass,
+  CellClassType,
+  OpenedCell,
+  openedCellsTypes
+} from '@config';
 
 @Directive({
   selector: '[playFieldCell]'
@@ -15,11 +30,8 @@ export class PlayFieldCellDirective implements OnInit, OnChanges {
   ngOnInit(): void {
     this.bindClassToElement(CellClass.unopened);
   }
+  
   ngOnChanges(changes: SimpleChanges): void {
-    this.aaa();
-  }
-
-  private aaa(): void {
     switch (this.cell) {
       case Cell.unopened:
         this.bindClassToElement(CellClass.unopened);
